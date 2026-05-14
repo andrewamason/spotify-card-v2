@@ -1,7 +1,7 @@
 {
   "name": "spotify-card-v2",
   "author": "Niklas Fondberg <niklas.fondberg@gmail.com>, Max Fermor (FL550) <max.fermor@gmail.com>, Mike van Es <mikevanes97@proton.me>",
-  "version": "2.3.6",
+  "version": "2.4.0",
   "description": "Spotify playlist card",
   "keywords": [
     "home-assistant",
@@ -14,7 +14,7 @@
     "playlist"
   ],
   "module": "spotify-card-v2.js",
-  "repository": "git@github.com:mikevanes/spotify-card-v2.git",
+  "repository": "git@github.com:andrewamason/spotify-card-v2.git",
   "license": "Apache-2.0",
   "dependencies": {
     "custom-card-helpers": "^1.6.4",
