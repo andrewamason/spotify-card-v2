@@ -151,13 +151,22 @@ export class SpotcastConnector implements ISpotcastConnector {
     return this.parent.player?.device;
   }
 
+  private callWSWithTimeout(message: { type: string; [key: string]: any }, timeoutMs = 8000): Promise<any> {
+    return Promise.race([
+      this.parent.hass.callWS(message),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`WS call timed out: ${JSON.stringify(message)}`)), timeoutMs)
+      ),
+    ]);
+  }
+
   public async fetchPlayer(): Promise<void> {
     const message: Message = {
       type: 'spotcast/player',
       account: this.parent.config.account,
     };
     try {
-      const currentPlayer = <CurrentPlayer> await this.parent.hass.callWS(message);
+      const currentPlayer = <CurrentPlayer> await this.callWSWithTimeout(message);
       console.log('spotify-card-v2: player response:', JSON.stringify(currentPlayer));
       this.parent.player = currentPlayer;
     } catch (e) {
@@ -171,7 +180,7 @@ export class SpotcastConnector implements ISpotcastConnector {
       account: this.parent.config.account,
     };
     try {
-      const res: any = await this.parent.hass.callWS(message);
+      const res: any = await this.callWSWithTimeout(message);
       console.log('spotify-card-v2: devices response:', JSON.stringify(res));
       const deviceArray: Array<IncomingConnectDevice> = Array.isArray(res) ? res : (res.devices ?? res.items ?? []);
       this.parent.devices = this.normalizeDevices(deviceArray);
@@ -214,7 +223,7 @@ export class SpotcastConnector implements ISpotcastConnector {
    */
   private async fetchChromecasts(): Promise<void> {
     try {
-      const res: Array<ChromecastDevice> = await this.parent.hass.callWS({ type: 'spotcast/castdevices' });
+      const res: Array<ChromecastDevice> = await this.callWSWithTimeout({ type: 'spotcast/castdevices' });
       this.parent.chromecast_devices = res;
     } catch (e) {
       this.parent.chromecast_devices = [];
@@ -236,7 +245,7 @@ export class SpotcastConnector implements ISpotcastConnector {
     }
     // message.locale = 'implement me later'
     try {
-      const res: any = await this.parent.hass.callWS(message);
+      const res: any = await this.callWSWithTimeout(message);
       console.log('spotify-card-v2: playlists response type:', Array.isArray(res) ? 'array' : typeof res, 'keys:', res ? Object.keys(res) : 'null');
       // Handle both {items: [...]} and direct array responses
       const items: Array<Playlist> = Array.isArray(res) ? res : (res.items ?? []);
