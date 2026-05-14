@@ -1,7 +1,7 @@
 {
   "name": "spotify-card-v2",
   "author": "Niklas Fondberg <niklas.fondberg@gmail.com>, Max Fermor (FL550) <max.fermor@gmail.com>, Mike van Es <mikevanes97@proton.me>",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "description": "Spotify playlist card",
   "keywords": [
     "home-assistant",

@@ -151,7 +151,7 @@ export class SpotcastConnector implements ISpotcastConnector {
     return this.parent.player?.device;
   }
 
-  private callWSWithTimeout(message: { type: string; [key: string]: any }, timeoutMs = 5000): Promise<any> {
+  private callWSWithTimeout(message: { type: string; [key: string]: any }, timeoutMs = 30000): Promise<any> {
     return Promise.race([
       this.parent.hass.callWS(message),
       new Promise<never>((_, reject) =>
