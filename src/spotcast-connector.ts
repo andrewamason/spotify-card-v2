@@ -152,18 +152,17 @@ export class SpotcastConnector implements ISpotcastConnector {
   }
 
   public async fetchPlayer(): Promise<void> {
-    // console.log('fetchPlayer');
     const message: Message = {
       type: 'spotcast/player',
       account: this.parent.config.account,
     };
     try {
       const currentPlayer = <CurrentPlayer> await this.parent.hass.callWS(message);
+      console.log('spotify-card-v2: player response:', JSON.stringify(currentPlayer));
       this.parent.player = currentPlayer;
     } catch (e) {
-      throw Error('Failed to fetch player: ' + e);
+      console.warn('spotify-card-v2: fetchPlayer failed:', e);
     }
-    // console.log('fetchPlayer:', JSON.stringify(this.player, null, 2));
   }
 
   private async fetchDevices(): Promise<void> {
@@ -172,12 +171,12 @@ export class SpotcastConnector implements ISpotcastConnector {
       account: this.parent.config.account,
     };
     try {
-      const res: Array<IncomingConnectDevice> = await this.parent.hass.callWS(message);
-      const normalizedDevices: ConnectDevice[] = this.normalizeDevices(res);
-
-      this.parent.devices = normalizedDevices;
+      const res: any = await this.parent.hass.callWS(message);
+      console.log('spotify-card-v2: devices response:', JSON.stringify(res));
+      const deviceArray: Array<IncomingConnectDevice> = Array.isArray(res) ? res : (res.devices ?? res.items ?? []);
+      this.parent.devices = this.normalizeDevices(deviceArray);
     } catch (e) {
-      throw Error('Failed to fetch devices: ' + e);
+      console.warn('spotify-card-v2: fetchDevices failed:', e);
     }
   }
 
@@ -237,7 +236,10 @@ export class SpotcastConnector implements ISpotcastConnector {
     }
     // message.locale = 'implement me later'
     try {
-      const res: any = <Array<Playlist>>await this.parent.hass.callWS(message);
+      const res: any = await this.parent.hass.callWS(message);
+      console.log('spotify-card-v2: playlists response type:', Array.isArray(res) ? 'array' : typeof res, 'keys:', res ? Object.keys(res) : 'null');
+      // Handle both {items: [...]} and direct array responses
+      const items: Array<Playlist> = Array.isArray(res) ? res : (res.items ?? []);
       try {
         if (this.parent.config.include_playlists) {
           const includes = <Array<PlaylistFilter>>this.parent.config.include_playlists?.map((include_str) => {
@@ -249,11 +251,9 @@ export class SpotcastConnector implements ISpotcastConnector {
                 pattern: new RegExp(include_str.slice(include_str.indexOf(':') + 1).trim()),
               };
             }) ?? [];
-          const included_playlists = res.items.filter((p) => includes.some((i) => i.pattern.test(p[i.key])));
-          //console.log('FILTERS:', JSON.stringify(includes, null, 2));
-          this.parent.playlists = included_playlists;
+          this.parent.playlists = items.filter((p) => includes.some((i) => i.pattern.test(p[i.key])));
         } else {
-          this.parent.playlists = res.items;
+          this.parent.playlists = items;
         }
       } catch (e) {
         if (e instanceof SyntaxError) {
@@ -261,13 +261,14 @@ export class SpotcastConnector implements ISpotcastConnector {
         } else {
           throw Error('Failed to filter playlists: ' + e);
         }
-        this.parent.playlists = res.items;
+        this.parent.playlists = items;
       }
     } catch (e) {
+      console.error('spotify-card-v2: fetchPlaylists failed:', e);
       throw Error('Failed to fetch playlists: ' + e);
     } finally {
       this.loading = false;
     }
-    // console.log('PLAYLISTS:', JSON.stringify(this.playlists, null, 2));
+    console.log('spotify-card-v2: playlists loaded:', this.parent.playlists.length);
   }
 }

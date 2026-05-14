@@ -199,8 +199,10 @@ export class SpotifyCard extends LitElement {
     }
     this._fetch_time_out = setTimeout(async () => {
       if (this.hass) {
-        //request update of spotcast data
-        if (this.isSpotcastInstalled() && !this.spotcast_connector.is_loading()) {
+        const spotcastOk = this.isSpotcastInstalled();
+        const loading = this.spotcast_connector.is_loading();
+        console.log('spotify-card-v2: updateSpotcast — spotcastInstalled:', spotcastOk, 'isLoading:', loading);
+        if (spotcastOk && !loading) {
           try {
             await this.spotcast_connector.updateState();
           } catch (e) {
