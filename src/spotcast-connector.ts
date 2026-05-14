@@ -136,12 +136,12 @@ export class SpotcastConnector implements ISpotcastConnector {
     // console.log('cache is NOT valid:', this.last_state_update_time);
     try {
       this.loading = true;
-      await this.fetchDevices();
-      await this.fetchPlayer();
-      await this.fetchChromecasts();
+      await Promise.allSettled([
+        this.fetchDevices(),
+        this.fetchPlayer(),
+        this.fetchChromecasts(),
+      ]);
       this.last_state_update_time = new Date().getTime();
-    } catch (e) {
-      throw Error('updateState error: ' + e);
     } finally {
       this.loading = false;
     }
@@ -151,7 +151,7 @@ export class SpotcastConnector implements ISpotcastConnector {
     return this.parent.player?.device;
   }
 
-  private callWSWithTimeout(message: { type: string; [key: string]: any }, timeoutMs = 8000): Promise<any> {
+  private callWSWithTimeout(message: { type: string; [key: string]: any }, timeoutMs = 5000): Promise<any> {
     return Promise.race([
       this.parent.hass.callWS(message),
       new Promise<never>((_, reject) =>
