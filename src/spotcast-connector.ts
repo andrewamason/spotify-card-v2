@@ -40,7 +40,6 @@ export class SpotcastConnector implements ISpotcastConnector {
   }
 
   public is_loading(): boolean {
-    setTimeout(this.set_loading_off, 100);
     return this.loading;
   }
 

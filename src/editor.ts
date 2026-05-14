@@ -139,7 +139,7 @@ export class SpotifyCardEditor extends LitElement implements LovelaceCardEditor 
           const targetProperty = config_value.split(':')[0].split('.')[1];
           target_value = (this.config?.known_connect_devices ?? [])
             .map((device: KnownConnectDevice, index: number) => {
-              return index == targetIndex ? {
+              return index == Number(targetIndex) ? {
                 ...device,
                 [targetProperty]: target_value
               } : device;

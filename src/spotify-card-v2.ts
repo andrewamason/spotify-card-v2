@@ -222,7 +222,7 @@ export class SpotifyCard extends LitElement {
       for (const cover of this.renderRoot.querySelectorAll('[data-spotify-image-url]') as NodeListOf<HTMLDivElement>) {
         const downloadingImage = new Image();
         downloadingImage.onload = function (event) {
-          cover.firstElementChild?.replaceWith(event.srcElement as HTMLDivElement);
+          cover.firstElementChild?.replaceWith(event.target as HTMLDivElement);
         };
         cover.dataset.spotifyImageUrl ? (downloadingImage.src = cover.dataset.spotifyImageUrl) : '';
       }
@@ -323,9 +323,13 @@ export class SpotifyCard extends LitElement {
 
   private startUri(elem: MouseEvent, uri: string): void {
     const loading = 'loading';
-    const target = elem.target as HTMLElement;
-    let item;
-    switch (target.localName) {
+    let target = elem.target as HTMLElement;
+    // Walk up from SVG internals (path, circle, etc.) to the nearest div
+    while (target && !['img', 'div', 'p'].includes(target.localName)) {
+      target = target.parentElement as HTMLElement;
+    }
+    let item: HTMLElement | null | undefined;
+    switch (target?.localName) {
       case 'img': {
         item = target.parentElement?.parentElement;
         break;
@@ -338,14 +342,11 @@ export class SpotifyCard extends LitElement {
         item = target.parentElement;
         break;
       }
-      default: {
-        console.log(target);
-        break;
-      }
     }
+    if (!item) return;
     item.classList.add(loading);
     setTimeout(() => {
-      item.classList.remove(loading);
+      item!.classList.remove(loading);
     }, 10000);
     this.spotcast_connector.playUri(uri);
   }
@@ -623,7 +624,7 @@ export class SpotifyCard extends LitElement {
           return html`<a @click=${(elem) => this.chromecastDeviceSelected(elem, device)}>${device.friendly_name}</a>`;
         })}
       `,
-      count: spotify_connect_devices.length + chromecast_devices.length,
+      count: spotify_connect_devices.length + chromecast_devices.length + known_spotify_connect_devices.length,
     };
   }
 
@@ -656,7 +657,6 @@ export class SpotifyCard extends LitElement {
     const playlists = this.getPlaylists();
     for (let i = 0; i < playlists.length; i++) {
       const item = playlists[i];
-      this._spotify_state?.attributes.media_playlist === item.name;
       result.push(html`<div class="grid-item" @click=${(elem) => this.startUri(elem, item.uri)}>
         <div
           class="grid-item-album-image ${this.isThisPlaylistPlaying(item) ? 'playing' : ''}"
