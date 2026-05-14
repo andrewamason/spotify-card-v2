@@ -33,7 +33,7 @@ import { PLAYLIST_TYPES } from './editor';
 
 import { localize } from './localize/localize';
 import { ISpotcastConnector, SpotcastConnector } from './spotcast-connector';
-import { HassEntity, servicesColl, subscribeEntities, HassEntities } from 'home-assistant-js-websocket';
+import { HassEntity, subscribeEntities, HassEntities } from 'home-assistant-js-websocket';
 
 // Display card version in console
 /* eslint no-console: 0 */
@@ -270,10 +270,7 @@ export class SpotifyCard extends LitElement {
   }
 
   private isSpotcastInstalled(): boolean {
-    if (this.hass?.connection && servicesColl(this.hass.connection).state.spotcast !== undefined) {
-      return true;
-    }
-    return false;
+    return this.hass?.services?.spotcast !== undefined;
   }
 
   private checkIfAllowedToShow(device: ConnectDevice | ChromecastDevice): boolean {
