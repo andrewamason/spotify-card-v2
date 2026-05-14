@@ -201,7 +201,11 @@ export class SpotifyCard extends LitElement {
       if (this.hass) {
         //request update of spotcast data
         if (this.isSpotcastInstalled() && !this.spotcast_connector.is_loading()) {
-          await this.spotcast_connector.updateState();
+          try {
+            await this.spotcast_connector.updateState();
+          } catch (e) {
+            console.warn('spotify-card-v2: updateState failed, will still fetch playlists:', e);
+          }
           await this.spotcast_connector.fetchPlaylists();
         }
       }

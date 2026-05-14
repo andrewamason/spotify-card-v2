@@ -219,7 +219,7 @@ export class SpotcastConnector implements ISpotcastConnector {
       this.parent.chromecast_devices = res;
     } catch (e) {
       this.parent.chromecast_devices = [];
-      throw Error('Failed to fetch devices: ' + e);
+      console.warn('spotify-card-v2: castdevices unavailable, skipping:', e);
     }
     // console.log('fetchChromecasts2:', this.chromecast_devices);
   }
